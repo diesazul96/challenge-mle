@@ -2,6 +2,30 @@ import pandas as pd
 
 from typing import Tuple, Union, List
 
+ORIGINAL_COLS = [
+    "OPERA",
+    "MES",
+    "TIPOVUELO",   
+]
+
+FEATURES_COLS = [
+    "OPERA_Latin American Wings", 
+    "MES_7",
+    "MES_10",
+    "OPERA_Grupo LATAM",
+    "MES_12",
+    "TIPOVUELO_I",
+    "MES_4",
+    "MES_11",
+    "OPERA_Sky Airline",
+    "OPERA_Copa Air"
+]
+
+TARGET_COL = [
+    "delay"
+]
+
+
 class DelayModel:
 
     def __init__(
@@ -13,7 +37,7 @@ class DelayModel:
         self,
         data: pd.DataFrame,
         target_column: str = None
-    ) -> Union(Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame):
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
         """
         Prepare raw data for training or predict.
 
@@ -26,7 +50,18 @@ class DelayModel:
             or
             pd.DataFrame: features.
         """
-        return
+        target = None
+        if target_column:
+            target = data[[target_column]]
+        
+        features = data[ORIGINAL_COLS]
+        features = features.join(pd.get_dummies(features["OPERA"]))
+        features = features.join(pd.get_dummies(features["TIPOVUELO"]))
+        features = features.join(pd.get_dummies(features["MES"]))
+
+        features = features[FEATURES_COLS]
+
+        return features if target is None else (features, target)
 
     def fit(
         self,
