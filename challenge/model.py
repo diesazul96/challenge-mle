@@ -6,19 +6,12 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.exceptions import NotFittedError
 
-# Configure logging
+from config import ORIGINAL_COLS, RANDOM_STATE
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Constants
 THRESHOLD_IN_MINUTES = 15
-RANDOM_STATE = 42
-
-ORIGINAL_COLS = [
-    "OPERA",
-    "TIPOVUELO",
-    "MES",   
-]
 
 FEATURES_COLS = [
     "OPERA_Latin American Wings", 
@@ -33,7 +26,6 @@ FEATURES_COLS = [
     "OPERA_Copa Air"
 ]
 
-TARGET_COL = ["delay"]
 
 class DelayModel:
     """
@@ -112,6 +104,10 @@ class DelayModel:
         
         # Create dummy variables more efficiently
         features = pd.get_dummies(features, prefix=['OPERA', 'TIPOVUELO', 'MES'])
+
+        for col in FEATURES_COLS:
+            if col not in features.columns:
+                features[col] = 0
 
         features = features[FEATURES_COLS]
         logger.info(f"Preprocessed data shape: {features.shape}")
