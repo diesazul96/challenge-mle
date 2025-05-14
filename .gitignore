@@ -179,3 +179,6 @@ cython_debug/
 # VSCode
 .python-version
 .vscode/
+
+# Test reports
+reports/
