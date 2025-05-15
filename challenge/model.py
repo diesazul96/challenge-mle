@@ -1,12 +1,12 @@
 from datetime import datetime
 import logging
-from typing import Tuple, Union, List, Optional
+from typing import Tuple, Union, List, Optional, Set
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.exceptions import NotFittedError
 
-from config import ORIGINAL_COLS, RANDOM_STATE
+from challenge.config import ORIGINAL_COLS, RANDOM_STATE
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,12 +35,14 @@ class DelayModel:
     will be delayed based on various features such as airline, flight type, and month.
     
     Attributes:
-        _model (LogisticRegression): The trained logistic regression model.
+        _model (Optional[LogisticRegression]): The trained logistic regression model.
+        _trained_airlines (Optional[Set[str]]): Set of airline names seen during training.
     """
     
     def __init__(self) -> None:
         """Initialize the DelayModel with no trained model."""
         self._model: Optional[LogisticRegression] = None
+        self._trained_airlines: Optional[Set[str]] = None
 
     @staticmethod
     def _get_min_diff(data: pd.DataFrame) -> float:
@@ -91,6 +93,9 @@ class DelayModel:
 
         target = None
         if target_column:
+            self._trained_airlines = set(data['OPERA'].unique())
+            logger.info(f"Stored {len(self._trained_airlines)} unique airlines from training data.")
+
             data['min_diff'] = data.apply(self._get_min_diff, axis=1)
             data[target_column] = np.where(data['min_diff'] > THRESHOLD_IN_MINUTES, 1, 0)
             target = data[[target_column]]

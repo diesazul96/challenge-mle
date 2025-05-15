@@ -5,8 +5,15 @@ import logging
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
-from config import DATA_PATH, METRICS_OUTPUT_PATH, MODEL_OUTPUT_PATH, TARGET_COLUMN, VALIDATION_RATIO, RANDOM_STATE
-from model import DelayModel
+from challenge.config import (
+    DATA_PATH,
+    METRICS_OUTPUT_PATH,
+    MODEL_OUTPUT_PATH,
+    TARGET_COLUMN,
+    VALIDATION_RATIO,
+    RANDOM_STATE
+)
+from challenge.model import DelayModel
 
 
 logging.basicConfig(level=logging.INFO)
