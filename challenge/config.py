@@ -13,3 +13,6 @@ METRICS_OUTPUT_PATH = Path(f"metrics/classification_report_{datetime.now().strft
 # Evaluation
 VALIDATION_RATIO = 0.2
 RANDOM_STATE = 42
+
+# API MODEL
+API_MODEL_PATH = Path("models/delay_model_20250514T19.joblib")
