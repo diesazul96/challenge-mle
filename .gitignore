@@ -175,10 +175,3 @@ cython_debug/
 
 # MACOSX
 *.DS_Store
-
-# VSCode
-.python-version
-.vscode/
-
-# Test reports
-reports/

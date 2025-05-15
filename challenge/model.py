@@ -1,123 +1,32 @@
-from datetime import datetime
-import logging
-from typing import Tuple, Union, List, Optional, Set
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.exceptions import NotFittedError
 
-from challenge.config import ORIGINAL_COLS, RANDOM_STATE
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-THRESHOLD_IN_MINUTES = 15
-
-FEATURES_COLS = [
-    "OPERA_Latin American Wings", 
-    "MES_7",
-    "MES_10",
-    "OPERA_Grupo LATAM",
-    "MES_12",
-    "TIPOVUELO_I",
-    "MES_4",
-    "MES_11",
-    "OPERA_Sky Airline",
-    "OPERA_Copa Air"
-]
-
+from typing import Tuple, Union, List
 
 class DelayModel:
-    """
-    A machine learning model for predicting flight delays.
-    
-    This class implements a logistic regression model to predict whether a flight
-    will be delayed based on various features such as airline, flight type, and month.
-    
-    Attributes:
-        _model (Optional[LogisticRegression]): The trained logistic regression model.
-        _trained_airlines (Optional[Set[str]]): Set of airline names seen during training.
-    """
-    
-    def __init__(self) -> None:
-        """Initialize the DelayModel with no trained model."""
-        self._model: Optional[LogisticRegression] = None
-        self._trained_airlines: Optional[Set[str]] = None
 
-    @staticmethod
-    def _get_min_diff(data: pd.DataFrame) -> float:
-        """
-        Calculate difference in minutes between Fecha-O and Fecha-I.
-
-        Args:
-            data (pd.DataFrame): Raw data containing Fecha-O and Fecha-I columns.
-
-        Returns:
-            float: Difference in minutes between Fecha-O and Fecha-I.
-            
-        Raises:
-            ValueError: If required columns are missing or date format is invalid.
-        """
-        try:
-            fecha_o = datetime.strptime(data['Fecha-O'], '%Y-%m-%d %H:%M:%S')
-            fecha_i = datetime.strptime(data['Fecha-I'], '%Y-%m-%d %H:%M:%S')
-            return ((fecha_o - fecha_i).total_seconds()) / 60
-        except KeyError as e:
-            raise ValueError(f"Missing required column: {e}") from e
-        except ValueError as e:
-            raise ValueError(f"Invalid date format: {e}") from e
+    def __init__(
+        self
+    ):
+        self._model = None # Model should be saved in this attribute.
 
     def preprocess(
         self,
         data: pd.DataFrame,
         target_column: str = None
-    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
+    ) -> Union(Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame):
         """
         Prepare raw data for training or predict.
 
         Args:
-            data (pd.DataFrame): Raw data.
-            target_column (str, optional): If set, the target is returned.
+            data (pd.DataFrame): raw data.
+            target_column (str, optional): if set, the target is returned.
 
         Returns:
-            Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]: 
-                - If target_column is provided: Tuple of (features, target)
-                - Otherwise: features DataFrame
-
-        Raises:
-            ValueError: If required columns are missing.
+            Tuple[pd.DataFrame, pd.DataFrame]: features and target.
+            or
+            pd.DataFrame: features.
         """
-        missing_cols = [col for col in ORIGINAL_COLS if col not in data.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
-
-        target = None
-        if target_column:
-            self._trained_airlines = set(data['OPERA'].unique())
-            logger.info(f"Stored {len(self._trained_airlines)} unique airlines from training data.")
-
-            data['min_diff'] = data.apply(self._get_min_diff, axis=1)
-            data[target_column] = np.where(data['min_diff'] > THRESHOLD_IN_MINUTES, 1, 0)
-            target = data[[target_column]]
-            
-        # Optimize preprocessing by using categorical dtype
-        features = data[ORIGINAL_COLS].astype({
-            'OPERA': 'category',
-            'TIPOVUELO': 'category',
-            'MES': 'category'
-        })
-        
-        # Create dummy variables more efficiently
-        features = pd.get_dummies(features, prefix=['OPERA', 'TIPOVUELO', 'MES'])
-
-        for col in FEATURES_COLS:
-            if col not in features.columns:
-                features[col] = 0
-
-        features = features[FEATURES_COLS]
-        logger.info(f"Preprocessed data shape: {features.shape}")
-
-        return features if target is None else (features, target)
+        return
 
     def fit(
         self,
@@ -128,24 +37,10 @@ class DelayModel:
         Fit model with preprocessed data.
 
         Args:
-            features (pd.DataFrame): Preprocessed features.
-            target (pd.DataFrame): Target values.
-
-        Raises:
-            ValueError: If input data is invalid.
+            features (pd.DataFrame): preprocessed data.
+            target (pd.DataFrame): target.
         """
-        if features.empty or target.empty:
-            raise ValueError("Empty features or target data provided")
-
-        n_y0 = len(target[target == 0])
-        n_y1 = len(target[target == 1])
-
-        self._model = LogisticRegression(
-            class_weight={1: n_y0/len(target), 0: n_y1/len(target)},
-            random_state=RANDOM_STATE
-        )
-        self._model.fit(features, target.values.ravel())
-        logger.info("Model training completed successfully")
+        return
 
     def predict(
         self,
@@ -155,19 +50,9 @@ class DelayModel:
         Predict delays for new flights.
 
         Args:
-            features (pd.DataFrame): Preprocessed features.
-
+            features (pd.DataFrame): preprocessed data.
+        
         Returns:
-            List[int]: Predicted targets.
-
-        Raises:
-            NotFittedError: If the model hasn't been trained.
-            ValueError: If input data is invalid.
+            (List[int]): predicted targets.
         """
-        if self._model is None:
-            raise NotFittedError("Model has not been trained yet")
-            
-        if features.empty:
-            raise ValueError("Empty features data provided")
-            
-        return self._model.predict(features).tolist()
+        return
