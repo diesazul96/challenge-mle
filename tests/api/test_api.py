@@ -1,14 +1,26 @@
 import unittest
+from unittest.mock import ANY, MagicMock, patch
 
+from challenge.model import DelayModel
 from fastapi.testclient import TestClient
+from mockito import when
+import numpy as np
 from challenge import app
 
 
 class TestBatchPipeline(unittest.TestCase):
     def setUp(self):
+        self.mock_model_instance = MagicMock()
+
+        self.model_patcher = patch('challenge.api.model', self.mock_model_instance)
+        self.model_patcher.start()
+
         self.client = TestClient(app)
-        
+
     def test_should_get_predict(self):
+        self.mock_model_instance._trained_airlines = {"Aerolineas Argentinas"}
+        self.mock_model_instance.predict.return_value = np.array([0])
+
         data = {
             "flights": [
                 {
@@ -18,14 +30,13 @@ class TestBatchPipeline(unittest.TestCase):
                 }
             ]
         }
-        # when("xgboost.XGBClassifier").predict(ANY).thenReturn(np.array([0])) # change this line to the model of chosing
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"predict": [0]})
-    
+
 
     def test_should_failed_unkown_column_1(self):
-        data = {       
+        data = {
             "flights": [
                 {
                     "OPERA": "Aerolineas Argentinas", 
@@ -34,12 +45,12 @@ class TestBatchPipeline(unittest.TestCase):
                 }
             ]
         }
-        # when("xgboost.XGBClassifier").predict(ANY).thenReturn(np.array([0]))# change this line to the model of chosing
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
 
     def test_should_failed_unkown_column_2(self):
-        data = {        
+        data = {
             "flights": [
                 {
                     "OPERA": "Aerolineas Argentinas", 
@@ -48,12 +59,12 @@ class TestBatchPipeline(unittest.TestCase):
                 }
             ]
         }
-        # when("xgboost.XGBClassifier").predict(ANY).thenReturn(np.array([0]))# change this line to the model of chosing
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
-    
+
     def test_should_failed_unkown_column_3(self):
-        data = {        
+        data = {
             "flights": [
                 {
                     "OPERA": "Argentinas", 
@@ -62,6 +73,6 @@ class TestBatchPipeline(unittest.TestCase):
                 }
             ]
         }
-        # when("xgboost.XGBClassifier").predict(ANY).thenReturn(np.array([0]))
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
