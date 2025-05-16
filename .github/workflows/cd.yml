@@ -9,9 +9,15 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch: # Add this for manual triggers
+    inputs:
+      branch:
+        description: 'Branch to deploy from'
+        required: true
 
 env:
   GCP_PROJECT_ID: challenge-mle-dam
+  GCP_PROJECT_NUMBER: 215354053756
   GCP_ARTIFACT_REGISTRY_REGION: us-central1 
   GCP_ARTIFACT_REGISTRY_REPO: challenge-mle-dam
   IMAGE_NAME: challenge-mle-dam
@@ -21,7 +27,7 @@ env:
 jobs:
   cd-staging:
     name: Deploy to Staging
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' || github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' || github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch') 
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -34,7 +40,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: 'github-actions-deployer@challenge-mle-dam.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
