@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.exceptions import NotFittedError
 
-from challenge.config import ORIGINAL_COLS, RANDOM_STATE
+from challenge.config import ORIGINAL_COLS
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
