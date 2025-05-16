@@ -7,7 +7,7 @@ on:
       - completed
   push:
     branches:
-      - main
+      - master
       - develop
   workflow_dispatch: # Add this for manual triggers
     inputs:
@@ -82,7 +82,7 @@ jobs:
 
   cd-production:
     name: Deploy to Production
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' || github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' || github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
