@@ -136,7 +136,6 @@ class DelayModel:
 
         n_y0 = len(target[target == 0])
         n_y1 = len(target[target == 1])
-        print(n_y0 / n_y1)
 
         self._model = LogisticRegression(
             class_weight={1: n_y0 / len(target), 0: n_y1 / len(target)},
