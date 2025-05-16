@@ -19,4 +19,4 @@ VALIDATION_RATIO = 0.33
 RANDOM_STATE = 42
 
 # API MODEL
-API_MODEL_PATH = Path("models/delay_model_20250514T19.joblib")
+API_MODEL_PATH = Path("models/delay_model_20250516T01.joblib")
