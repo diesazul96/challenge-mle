@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "challenge-mle"
+version = "0.1.0"
+description = ""
+authors = ["Diego Alvarez <diesazul96@hotmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.2.3"
+numpy = "^2.2.5"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.2"
+scikit-learn = "^1.6.1"
+joblib = "^1.5.0"
+httpx = "^0.28.1"
+ruff = "^0.11.10"
+bandit = "^1.8.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+pytest-asyncio = "^0.26.0"
+mockito = "^1.5.4"
+locust = "^2.37.3"
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
