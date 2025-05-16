@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 THRESHOLD_IN_MINUTES = 15
 
 FEATURES_COLS = [
-    "OPERA_Latin American Wings", 
+    "OPERA_Latin American Wings",
     "MES_7",
     "MES_10",
     "OPERA_Grupo LATAM",
@@ -23,22 +23,22 @@ FEATURES_COLS = [
     "MES_4",
     "MES_11",
     "OPERA_Sky Airline",
-    "OPERA_Copa Air"
+    "OPERA_Copa Air",
 ]
 
 
 class DelayModel:
     """
     A machine learning model for predicting flight delays.
-    
+
     This class implements a logistic regression model to predict whether a flight
     will be delayed based on various features such as airline, flight type, and month.
-    
+
     Attributes:
         _model (Optional[LogisticRegression]): The trained logistic regression model.
         _trained_airlines (Optional[Set[str]]): Set of airline names seen during training.
     """
-    
+
     def __init__(self) -> None:
         """Initialize the DelayModel with no trained model."""
         self._model: Optional[LogisticRegression] = None
@@ -54,13 +54,13 @@ class DelayModel:
 
         Returns:
             float: Difference in minutes between Fecha-O and Fecha-I.
-            
+
         Raises:
             ValueError: If required columns are missing or date format is invalid.
         """
         try:
-            fecha_o = datetime.strptime(data['Fecha-O'], '%Y-%m-%d %H:%M:%S')
-            fecha_i = datetime.strptime(data['Fecha-I'], '%Y-%m-%d %H:%M:%S')
+            fecha_o = datetime.strptime(data["Fecha-O"], "%Y-%m-%d %H:%M:%S")
+            fecha_i = datetime.strptime(data["Fecha-I"], "%Y-%m-%d %H:%M:%S")
             return ((fecha_o - fecha_i).total_seconds()) / 60
         except KeyError as e:
             raise ValueError(f"Missing required column: {e}") from e
@@ -68,9 +68,7 @@ class DelayModel:
             raise ValueError(f"Invalid date format: {e}") from e
 
     def preprocess(
-        self,
-        data: pd.DataFrame,
-        target_column: str = None
+        self, data: pd.DataFrame, target_column: str = None
     ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
         """
         Prepare raw data for training or predict.
@@ -80,7 +78,7 @@ class DelayModel:
             target_column (str, optional): If set, the target is returned.
 
         Returns:
-            Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]: 
+            Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
                 - If target_column is provided: Tuple of (features, target)
                 - Otherwise: features DataFrame
 
@@ -93,22 +91,24 @@ class DelayModel:
 
         target = None
         if target_column:
-            self._trained_airlines = set(data['OPERA'].unique())
-            logger.info(f"Stored {len(self._trained_airlines)} unique airlines from training data.")
+            self._trained_airlines = set(data["OPERA"].unique())
+            logger.info(
+                f"Stored {len(self._trained_airlines)} unique airlines from training data."
+            )
 
-            data['min_diff'] = data.apply(self._get_min_diff, axis=1)
-            data[target_column] = np.where(data['min_diff'] > THRESHOLD_IN_MINUTES, 1, 0)
+            data["min_diff"] = data.apply(self._get_min_diff, axis=1)
+            data[target_column] = np.where(
+                data["min_diff"] > THRESHOLD_IN_MINUTES, 1, 0
+            )
             target = data[[target_column]]
-            
+
         # Optimize preprocessing by using categorical dtype
-        features = data[ORIGINAL_COLS].astype({
-            'OPERA': 'category',
-            'TIPOVUELO': 'category',
-            'MES': 'category'
-        })
-        
+        features = data[ORIGINAL_COLS].astype(
+            {"OPERA": "category", "TIPOVUELO": "category", "MES": "category"}
+        )
+
         # Create dummy variables more efficiently
-        features = pd.get_dummies(features, prefix=['OPERA', 'TIPOVUELO', 'MES'])
+        features = pd.get_dummies(features, prefix=["OPERA", "TIPOVUELO", "MES"])
 
         for col in FEATURES_COLS:
             if col not in features.columns:
@@ -119,11 +119,7 @@ class DelayModel:
 
         return features if target is None else (features, target)
 
-    def fit(
-        self,
-        features: pd.DataFrame,
-        target: pd.DataFrame
-    ) -> None:
+    def fit(self, features: pd.DataFrame, target: pd.DataFrame) -> None:
         """
         Fit model with preprocessed data.
 
@@ -141,16 +137,13 @@ class DelayModel:
         n_y1 = len(target[target == 1])
 
         self._model = LogisticRegression(
-            class_weight={1: n_y0/len(target), 0: n_y1/len(target)},
-            random_state=RANDOM_STATE
+            class_weight={1: n_y0 / len(target), 0: n_y1 / len(target)},
+            random_state=RANDOM_STATE,
         )
         self._model.fit(features, target.values.ravel())
         logger.info("Model training completed successfully")
 
-    def predict(
-        self,
-        features: pd.DataFrame
-    ) -> List[int]:
+    def predict(self, features: pd.DataFrame) -> List[int]:
         """
         Predict delays for new flights.
 
@@ -166,8 +159,8 @@ class DelayModel:
         """
         if self._model is None:
             raise NotFittedError("Model has not been trained yet")
-            
+
         if features.empty:
             raise ValueError("Empty features data provided")
-            
+
         return self._model.predict(features).tolist()

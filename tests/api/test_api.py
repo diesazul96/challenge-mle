@@ -11,7 +11,7 @@ class TestBatchPipeline(unittest.TestCase):
     def setUp(self):
         self.mock_model_instance = MagicMock()
 
-        self.model_patcher = patch('challenge.api.model', self.mock_model_instance)
+        self.model_patcher = patch("challenge.api.model", self.mock_model_instance)
         self.model_patcher.start()
 
         self.client = TestClient(app)
@@ -21,57 +21,36 @@ class TestBatchPipeline(unittest.TestCase):
         self.mock_model_instance.predict.return_value = np.array([0])
 
         data = {
-            "flights": [
-                {
-                    "OPERA": "Aerolineas Argentinas", 
-                    "TIPOVUELO": "N", 
-                    "MES": 3
-                }
-            ]
+            "flights": [{"OPERA": "Aerolineas Argentinas", "TIPOVUELO": "N", "MES": 3}]
         }
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"predict": [0]})
 
-
     def test_should_failed_unkown_column_1(self):
         data = {
-            "flights": [
-                {
-                    "OPERA": "Aerolineas Argentinas", 
-                    "TIPOVUELO": "N",
-                    "MES": 13
-                }
-            ]
+            "flights": [{"OPERA": "Aerolineas Argentinas", "TIPOVUELO": "N", "MES": 13}]
         }
-        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(
+            np.array([0])
+        )
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
 
     def test_should_failed_unkown_column_2(self):
         data = {
-            "flights": [
-                {
-                    "OPERA": "Aerolineas Argentinas", 
-                    "TIPOVUELO": "O", 
-                    "MES": 13
-                }
-            ]
+            "flights": [{"OPERA": "Aerolineas Argentinas", "TIPOVUELO": "O", "MES": 13}]
         }
-        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(
+            np.array([0])
+        )
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
 
     def test_should_failed_unkown_column_3(self):
-        data = {
-            "flights": [
-                {
-                    "OPERA": "Argentinas", 
-                    "TIPOVUELO": "O", 
-                    "MES": 13
-                }
-            ]
-        }
-        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(np.array([0]))
+        data = {"flights": [{"OPERA": "Argentinas", "TIPOVUELO": "O", "MES": 13}]}
+        when("sklearn.linear_model.LogisticRegression").predict(ANY).thenReturn(
+            np.array([0])
+        )
         response = self.client.post("/predict", json=data)
         self.assertEqual(response.status_code, 400)
