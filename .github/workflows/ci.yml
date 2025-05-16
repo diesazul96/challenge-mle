@@ -10,14 +10,6 @@ on:
       - main
       - develop
 
-env:
-  GCP_PROJECT_ID: YOUR_PROJECT_ID
-  GCP_ARTIFACT_REGISTRY_REGION: YOUR_REGION # e.g., us-central1
-  GCP_ARTIFACT_REGISTRY_REPO: YOUR_REPO_NAME # Your Artifact Registry repo name
-  IMAGE_NAME: YOUR_IMAGE_NAME # e.g., flight-delay-api
-  CLOUD_RUN_SERVICE_NAME: YOUR_MAIN_SERVICE_NAME # e.g., flight-delay-api
-  CLOUD_RUN_REGION: YOUR_CLOUD_RUN_REGION # e.g., us-central1
-
 jobs:
   ci:
     name: Continuous Integration
@@ -35,7 +27,7 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
-          virtualenvs-in-project: true # Optional: creates .venv in project
+          virtualenvs-in-project: true
 
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -48,15 +40,11 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction
 
-      - name: Activate venv for subsequent steps (if needed by linters/etc)
-        run: source .venv/bin/activate # May not be strictly needed if using poetry run
-
       - name: Lint with Ruff (or Flake8/Black)
         run: poetry run ruff check . && poetry run ruff format --check .
-        # Or: poetry run flake8 && poetry run black --check .
 
       - name: Run tests with Pytest
-        run: poetry run pytest # Or your `make api-test` if adapted for CI
+        run: poetry run pytest
 
       - name: Security Scan with Bandit (example)
         run: poetry run bandit -r ./challenge

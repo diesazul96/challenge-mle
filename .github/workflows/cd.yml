@@ -5,18 +5,18 @@ on:
     workflows: ["Continuous Integration"]
     types:
       - completed
-  push: # Also allow manual trigger or trigger if CI is in the same file and CD depends on it
+  push:
     branches:
       - main
       - develop
 
 env:
   GCP_PROJECT_ID: challenge-mle-dam
-  GCP_ARTIFACT_REGISTRY_REGION: us-central1 # e.g., us-central1
-  GCP_ARTIFACT_REGISTRY_REPO: challenge-mle-dam # Your Artifact Registry repo name
-  IMAGE_NAME: challenge-mle-dam # e.g., flight-delay-api
-  CLOUD_RUN_SERVICE_NAME: challenge-mle-dam # e.g., flight-delay-api
-  CLOUD_RUN_REGION: us-central1 # e.g., us-central1
+  GCP_ARTIFACT_REGISTRY_REGION: us-central1 
+  GCP_ARTIFACT_REGISTRY_REPO: challenge-mle-dam
+  IMAGE_NAME: challenge-mle-dam
+  CLOUD_RUN_SERVICE_NAME: challenge-mle-dam
+  CLOUD_RUN_REGION: us-central1
 
 jobs:
   cd-staging:
@@ -67,7 +67,7 @@ jobs:
       
       - name: Staging Smoke Test
         env:
-          STAGING_URL: ${{ steps.deploy_staging.outputs.result }} # Use the output from the deploy step
+          STAGING_URL: ${{ steps.deploy_staging.outputs.result }}
         run: |
           echo "Staging URL: $STAGING_URL"
           curl --fail --retry 5 --retry-delay 10 "$STAGING_URL/health"

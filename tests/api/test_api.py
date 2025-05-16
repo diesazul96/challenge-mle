@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import ANY, MagicMock, patch
 
-from challenge.model import DelayModel
 from fastapi.testclient import TestClient
 from mockito import when
 import numpy as np
