@@ -11,12 +11,13 @@ from challenge.config import (
     MODEL_OUTPUT_PATH,
     TARGET_COLUMN,
     VALIDATION_RATIO,
-    RANDOM_STATE
+    RANDOM_STATE,
 )
 from challenge.model import DelayModel
 
 
 logging.basicConfig(level=logging.INFO)
+
 
 def generate_classification_report(y_true, y_pred) -> Dict:
     """Generates a classification report as dict (for saving)."""
@@ -36,7 +37,9 @@ def run_pipeline():
 
     x, y = model.preprocess(df, target_column=TARGET_COLUMN)
 
-    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=VALIDATION_RATIO, random_state=RANDOM_STATE)
+    x_train, x_val, y_train, y_val = train_test_split(
+        x, y, test_size=VALIDATION_RATIO, random_state=RANDOM_STATE
+    )
 
     model.fit(x_train, y_train)
 

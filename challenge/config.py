@@ -7,11 +7,15 @@ ORIGINAL_COLS = ["OPERA", "TIPOVUELO", "MES"]
 TARGET_COLUMN = "delay"
 
 # Artifacts
-MODEL_OUTPUT_PATH = Path(f"models/delay_model_{datetime.now().strftime('%Y%m%dT%H')}.joblib")
-METRICS_OUTPUT_PATH = Path(f"metrics/classification_report_{datetime.now().strftime('%Y%m%dT%H')}.json")
+MODEL_OUTPUT_PATH = Path(
+    f"models/delay_model_{datetime.now().strftime('%Y%m%dT%H')}.joblib"
+)
+METRICS_OUTPUT_PATH = Path(
+    f"metrics/classification_report_{datetime.now().strftime('%Y%m%dT%H')}.json"
+)
 
 # Evaluation
-VALIDATION_RATIO = 0.2
+VALIDATION_RATIO = 0.33
 RANDOM_STATE = 42
 
 # API MODEL
