@@ -9,9 +9,15 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch: # Add this for manual triggers
+    inputs:
+      branch:
+        description: 'Branch to deploy from'
+        required: true
 
 env:
   GCP_PROJECT_ID: challenge-mle-dam
+  GCP_PROJECT_NUMBER: 215354053756
   GCP_ARTIFACT_REGISTRY_REGION: us-central1 
   GCP_ARTIFACT_REGISTRY_REPO: challenge-mle-dam
   IMAGE_NAME: challenge-mle-dam
@@ -21,7 +27,7 @@ env:
 jobs:
   cd-staging:
     name: Deploy to Staging
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' || github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' || github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch') 
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -34,7 +40,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: 'github-actions-deployer@challenge-mle-dam.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
@@ -56,14 +62,16 @@ jobs:
           IMAGE_TAG: develop-${{ github.sha }}
           STAGING_SERVICE_NAME: ${{ env.CLOUD_RUN_SERVICE_NAME }}-staging
         run: |
-          gcloud run deploy ${{ env.STAGING_SERVICE_NAME }} \
+          SERVICE_URL=$(gcloud run deploy ${{ env.STAGING_SERVICE_NAME }} \
             --image ${{ env.GCP_ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_REPO }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
             --platform managed \
             --region ${{ env.CLOUD_RUN_REGION }} \
             --allow-unauthenticated \
             --port 8000 \
             --quiet \
-            --format='value(status.url)'
+            --format='value(status.url)')
+          echo "Staging URL: $SERVICE_URL"
+          echo "::set-output name=result::$SERVICE_URL"
       
       - name: Staging Smoke Test
         env:
@@ -75,7 +83,6 @@ jobs:
   cd-production:
     name: Deploy to Production
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' || github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: cd-staging
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -88,7 +95,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: 'github-actions-deployer@challenge-mle-dam.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
@@ -112,14 +119,16 @@ jobs:
         env:
           IMAGE_TAG_SHA: prod-${{ github.sha }}
         run: |
-          gcloud run deploy ${{ env.CLOUD_RUN_SERVICE_NAME }} \
+          SERVICE_URL=$(gcloud run deploy ${{ env.CLOUD_RUN_SERVICE_NAME }} \
             --image ${{ env.GCP_ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_REPO }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }} \
             --platform managed \
             --region ${{ env.CLOUD_RUN_REGION }} \
             --allow-unauthenticated \
             --port 8000 \
             --quiet \
-            --format='value(status.url)'
+            --format='value(status.url)')
+          echo "Production URL: $SERVICE_URL"
+          echo "::set-output name=result::$SERVICE_URL"
           
       - name: Production Smoke Test
         env:
