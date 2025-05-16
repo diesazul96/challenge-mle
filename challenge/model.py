@@ -97,18 +97,17 @@ class DelayModel:
             )
 
             data["min_diff"] = data.apply(self._get_min_diff, axis=1)
-            data[target_column] = np.where(
-                data["min_diff"] > THRESHOLD_IN_MINUTES, 1, 0
-            )
-            target = data[[target_column]]
+            data[target_column] = np.where(data["min_diff"] > THRESHOLD_IN_MINUTES, 1, 0)
+            target = data[target_column]
 
-        # Optimize preprocessing by using categorical dtype
-        features = data[ORIGINAL_COLS].astype(
-            {"OPERA": "category", "TIPOVUELO": "category", "MES": "category"}
+        features = pd.concat(
+            [
+                pd.get_dummies(data["OPERA"], prefix="OPERA"),
+                pd.get_dummies(data["TIPOVUELO"], prefix="TIPOVUELO"),
+                pd.get_dummies(data["MES"], prefix="MES"),
+            ],
+            axis=1,
         )
-
-        # Create dummy variables more efficiently
-        features = pd.get_dummies(features, prefix=["OPERA", "TIPOVUELO", "MES"])
 
         for col in FEATURES_COLS:
             if col not in features.columns:
@@ -119,7 +118,7 @@ class DelayModel:
 
         return features if target is None else (features, target)
 
-    def fit(self, features: pd.DataFrame, target: pd.DataFrame) -> None:
+    def fit(self, features: pd.DataFrame, target: pd.Series) -> None:
         """
         Fit model with preprocessed data.
 
@@ -135,10 +134,10 @@ class DelayModel:
 
         n_y0 = len(target[target == 0])
         n_y1 = len(target[target == 1])
+        print(n_y0 / n_y1)
 
         self._model = LogisticRegression(
             class_weight={1: n_y0 / len(target), 0: n_y1 / len(target)},
-            random_state=RANDOM_STATE,
         )
         self._model.fit(features, target.values.ravel())
         logger.info("Model training completed successfully")

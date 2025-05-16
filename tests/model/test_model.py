@@ -35,9 +35,9 @@ class TestModel(unittest.TestCase):
         assert features.shape[1] == len(self.FEATURES_COLS)
         assert set(features.columns) == set(self.FEATURES_COLS)
 
-        assert isinstance(target, pd.DataFrame)
-        assert target.shape[1] == len(self.TARGET_COL)
-        assert set(target.columns) == set(self.TARGET_COL)
+        assert isinstance(target, pd.Series)
+        assert target.shape[0] == len(self.data[self.TARGET_COL])
+        assert target.name == self.TARGET_COL[0]
 
     def test_model_preprocess_for_serving(self):
         features = self.model.preprocess(data=self.data)
@@ -49,11 +49,11 @@ class TestModel(unittest.TestCase):
     def test_model_fit(self):
         features, target = self.model.preprocess(data=self.data, target_column="delay")
 
-        _, features_validation, _, target_validation = train_test_split(
+        features_train, features_validation, target_train, target_validation = train_test_split(
             features, target, test_size=0.33, random_state=42
         )
 
-        self.model.fit(features=features, target=target)
+        self.model.fit(features=features_train, target=target_train)
 
         predicted_target = self.model._model.predict(features_validation)
 
@@ -67,8 +67,11 @@ class TestModel(unittest.TestCase):
         assert report["1"]["f1-score"] > 0.30
 
     def test_model_predict(self):
-        features = self.model.preprocess(data=self.data)
+        features_train, target = self.model.preprocess(data=self.data, target_column="delay")
 
+        self.model.fit(features=features_train, target=target)
+
+        features = self.model.preprocess(data=self.data)
         predicted_targets = self.model.predict(features=features)
 
         assert isinstance(predicted_targets, list)

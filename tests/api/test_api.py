@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import ANY, MagicMock, patch
 
 from fastapi.testclient import TestClient
-from mockito import when
+from mockito import when, unstub
 import numpy as np
 from challenge import app
 
@@ -15,6 +15,10 @@ class TestBatchPipeline(unittest.TestCase):
         self.model_patcher.start()
 
         self.client = TestClient(app)
+
+    def tearDown(self):
+        self.model_patcher.stop()
+        unstub()
 
     def test_should_get_predict(self):
         self.mock_model_instance._trained_airlines = {"Aerolineas Argentinas"}
