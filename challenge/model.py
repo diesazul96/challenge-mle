@@ -97,7 +97,9 @@ class DelayModel:
             )
 
             data["min_diff"] = data.apply(self._get_min_diff, axis=1)
-            data[target_column] = np.where(data["min_diff"] > THRESHOLD_IN_MINUTES, 1, 0)
+            data[target_column] = np.where(
+                data["min_diff"] > THRESHOLD_IN_MINUTES, 1, 0
+            )
             target = data[target_column]
 
         features = pd.concat(

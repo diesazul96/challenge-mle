@@ -49,8 +49,8 @@ class TestModel(unittest.TestCase):
     def test_model_fit(self):
         features, target = self.model.preprocess(data=self.data, target_column="delay")
 
-        features_train, features_validation, target_train, target_validation = train_test_split(
-            features, target, test_size=0.33, random_state=42
+        features_train, features_validation, target_train, target_validation = (
+            train_test_split(features, target, test_size=0.33, random_state=42)
         )
 
         self.model.fit(features=features_train, target=target_train)
@@ -67,7 +67,9 @@ class TestModel(unittest.TestCase):
         assert report["1"]["f1-score"] > 0.30
 
     def test_model_predict(self):
-        features_train, target = self.model.preprocess(data=self.data, target_column="delay")
+        features_train, target = self.model.preprocess(
+            data=self.data, target_column="delay"
+        )
 
         self.model.fit(features=features_train, target=target)
 
